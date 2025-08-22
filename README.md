@@ -1,7 +1,7 @@
 About
 ======================
 
-Source code for my [Half-Life SDK Programming series on YouTube](https://www.youtube.com/playlist?list=PLZmAT317GNn19tjUoC9dlT8nv4f8GHcjy).
+Source code for Admer456's [Half-Life SDK Programming series on YouTube](https://www.youtube.com/playlist?list=PLZmAT317GNn19tjUoC9dlT8nv4f8GHcjy).
 
 It is updated to catch up with the latest changes from [Half-Life Updated](https://github.com/SamVanheer/halflife-updated) SDK.
 
