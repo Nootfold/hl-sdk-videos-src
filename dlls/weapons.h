@@ -141,6 +141,7 @@ public:
 #define GRENADE_LAUNCHER_MAX_CLIP 4
 #define GAUSS_MAX_CLIP WEAPON_NOCLIP
 #define EGON_MAX_CLIP WEAPON_NOCLIP
+#define FLAMETHROWER_MAX_CLIP WEAPON_NOCLIP
 #define HORNETGUN_MAX_CLIP WEAPON_NOCLIP
 #define HANDGRENADE_MAX_CLIP WEAPON_NOCLIP
 #define SATCHEL_MAX_CLIP WEAPON_NOCLIP
@@ -165,6 +166,7 @@ public:
 #define RPG_DEFAULT_GIVE 1
 #define GAUSS_DEFAULT_GIVE 20
 #define EGON_DEFAULT_GIVE 20
+#define FLAMETHROWER_DEFAULT_GIVE 100
 #define HANDGRENADE_DEFAULT_GIVE 5
 #define SATCHEL_DEFAULT_GIVE 1
 #define TRIPMINE_DEFAULT_GIVE 1
@@ -377,6 +379,14 @@ public:
 
 	int PrimaryAmmoIndex() override;
 	int SecondaryAmmoIndex() override;
+	bool GetFullItemInfo(ItemInfo* p)
+	{
+		bool result = GetItemInfo(p);
+		FinishItemInfo(p);
+		return result;
+	}
+	
+	static void FinishItemInfo(ItemInfo* p);
 
 	void PrintState();
 
@@ -1295,6 +1305,201 @@ private:
 	bool m_deployed;
 
 	unsigned short m_usEgonFire;
+};
+
+enum flamethrower_e
+{
+	FLAMETHROWER_IDLE1 = 0,
+	FLAMETHROWER_FIDGET1,
+	FLAMETHROWER_ALTFIREON,
+	FLAMETHROWER_ALTFIRECYCLE,
+	FLAMETHROWER_ALTFIREOFF,
+	FLAMETHROWER_FIRE1,
+	FLAMETHROWER_FIRE2,
+	FLAMETHROWER_FIRE3,
+	FLAMETHROWER_FIRE4,
+	FLAMETHROWER_DRAW,
+	FLAMETHROWER_HOLSTER
+};
+
+class CFlamethrower : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int iItemSlot() override { return 3; }
+	bool GetItemInfo(ItemInfo* p) override;
+
+	void PrimaryAttack() override;
+	bool Deploy() override;
+	void WeaponIdle() override;
+
+	bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+};
+
+enum telepearl_e
+{
+	PEARL_IDLE = 0,
+	PEARL_FIDGET,
+	PEARL_PINPULL,
+	PEARL_THROW1, // toss
+	PEARL_THROW2, // medium
+	PEARL_THROW3, // hard
+	PEARL_HOLSTER,
+	PEARL_DRAW
+};
+
+class CTelePearl : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int iItemSlot() override { return 3; }
+	bool GetItemInfo(ItemInfo* p) override;
+
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	bool Deploy() override;
+	void WeaponIdle() override;
+
+	void ThrowPearl( bool itemHunt );
+	
+	bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+};
+
+enum grapple_e
+{
+	GRAPPLE_IDLE1 = 0,
+	GRAPPLE_IDLE2,
+	GRAPPLE_FIDGET1,
+	GRAPPLE_FIDGET2,
+	GRAPPLE_FIRE1,
+	GRAPPLE_FIRE2,
+	GRAPPLE_FIRE3,
+	GRAPPLE_RELOAD,
+	GRAPPLE_DRAW1,
+	GRAPPLE_DRAW2,
+	GRAPPLE_HOLSTER1,
+	GRAPPLE_HOLSTER2,
+};
+
+class CGrapple : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int iItemSlot() override { return 3; }
+	bool GetItemInfo(ItemInfo* p) override;
+
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	void Reload() override;
+	bool Deploy() override;
+	void WeaponIdle() override;
+
+	bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+
+	void Unlock()
+	{
+		m_Hook = nullptr;
+		m_Distance = 0.0f;
+	}
+
+	float GetDistance() const
+	{
+		return m_Distance;
+	}
+	
+	void SetDistance( float distance )
+	{
+		if ( distance < 1.0f )
+		{
+			distance = 1.0f;
+		}
+
+		m_Distance = distance;
+	}
+
+private:
+	CBaseEntity* m_Hook = nullptr;
+	float m_Distance = 0.0f;
+};
+
+enum physgun_e
+{
+	PHYSGUN_IDLE1 = 0,
+	PHYSGUN_IDLE2,
+	PHYSGUN_FIDGET1,
+	PHYSGUN_FIDGET2,
+	PHYSGUN_FIRE1,
+	PHYSGUN_FIRE2,
+	PHYSGUN_FIRE3,
+	PHYSGUN_RELOAD,
+	PHYSGUN_DRAW1,
+	PHYSGUN_DRAW2,
+	PHYSGUN_HOLSTER1,
+	PHYSGUN_HOLSTER2,
+};
+
+class CPhysgun : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int iItemSlot() override { return 3; }
+	bool GetItemInfo(ItemInfo* p) override;
+
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	void Reload() override;
+	bool Deploy() override;
+	void WeaponIdle() override;
+
+	Vector GetGunPosition() const;
+	Vector GetPlayerAim() const;
+
+	bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+
+private:
+	void ForcePush( CBaseEntity* entity );
+	void ForceMove( CBaseEntity* entity );
+	
+private:
+#ifndef CLIENT_DLL
+	EHANDLE m_Entity = {};
+#endif
+	float m_Distance = 0.0f;
+	// True = behave like GMod physgun
+	// False = behave like HL2 gravitygun
+	bool m_PhysMode = false;
 };
 
 enum hgun_e
